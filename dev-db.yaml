@@ -1,0 +1,36 @@
+services:
+    postgres:
+        image: postgres:latest
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=password
+            - POSTGRES_DATABASE=first-move
+        volumes:
+            - postgres-db-volume:/var/lib/postgresql/data
+            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+        ports:
+            - 5332:5432
+        networks:
+            - postgres-db-network
+    pgadmin:
+        image: dpage/pgadmin4
+        environment:
+            PGADMIN_DEFAULT_EMAIL: 'admin@admin.com'
+            PGADMIN_DEFAULT_PASSWORD: 'admin'
+        ports:
+            - 16543:80
+        volumes:
+            - ./postgres-servers.json:/pgadmin4/servers.json
+        networks:
+            - postgres-db-network
+
+volumes:
+    postgres-db-volume:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./data
+networks:
+    postgres-db-network:
+        driver: bridge
