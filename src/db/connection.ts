@@ -7,7 +7,6 @@ const envConfig = dotenv.config({
   path: path
 })
 dotenvExpand.expand(envConfig)
-console.log(envConfig)
 const db = drizzle(process.env.DB_URL || "")
 
 export default db
