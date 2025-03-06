@@ -13,7 +13,7 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DB_URL || "",
   },
-  schema: "./src/schema.ts",
+  schema: "./drizzle/schema.ts",
   out: "./drizzle",
   migrations: {
     prefix: "timestamp",

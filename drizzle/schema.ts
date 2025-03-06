@@ -1,15 +1,43 @@
-import { pgTable, serial, text, date, smallserial, bigserial, integer, smallint, foreignKey, primaryKey } from "drizzle-orm/pg-core"
+import {
+  pgTable,
+  serial,
+  text,
+  date,
+  smallserial,
+  bigserial,
+  integer,
+  smallint,
+  foreignKey,
+  primaryKey,
+  point,
+  varchar,
+  boolean
+} from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
 export const users = pgTable("users", {
   id: serial().primaryKey().notNull(),
-  username: text().notNull(),
-  email: text().notNull(),
+  username: text().notNull().unique(),
+  email: text().notNull().unique(),
   password: text().notNull(),
+  verificationToken: varchar({ length: 64 }),
+  verified: boolean().default(false).notNull(),
   createdAt: date("created_at").default(sql`CURRENT_TIMESTAMP`),
   updatedAt: date("updated_at"),
 });
+
+export const dealers = pgTable("dealers", {
+  id: serial().primaryKey().notNull(),
+  name: text().notNull(),
+  email: text().notNull(),
+  password: text().notNull(),
+  verificationToken: varchar({ length: 64 }),
+  verified: boolean().default(false).notNull(),
+  createdAt: date("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: date("updated_at"),
+  location: point('location', { mode: 'xy' }).notNull()
+})
 
 export const carCategories = pgTable("car_categories", {
   id: smallserial().primaryKey().notNull(),
@@ -50,3 +78,8 @@ export const carsCarCategories = pgTable("cars_car_categories", {
   }),
   primaryKey({ columns: [table.car, table.category], name: "cars_car_categories-pk" }),
 ]);
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Dealer = typeof dealers.$inferSelect;
+export type NewDealer = typeof dealers.$inferInsert;
