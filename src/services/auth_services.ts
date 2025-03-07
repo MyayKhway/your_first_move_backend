@@ -206,17 +206,18 @@ export const login = async (req: Request, res: Response) => {
     } else {
       dealerFound = await db.select().from(dealers).where(or(eq(dealers.email, email), eq(dealers.name, username)))
     }
+    console.log(userFound, dealerFound)
 
-    if (!userFound || !dealerFound || userFound.length === 0 || dealerFound.length === 0) {
+    if ((!userFound || userFound.length === 0) && (!dealerFound || dealerFound.length === 0)) {
       res.status(401).json({ message: 'Invalid credentials.' })
       return;
     }
 
     let isValidPassword: boolean;
     if (type === 'user') {
-      isValidPassword = await verify(jwtOpts.secret, password)
+      isValidPassword = await verify(userFound[0].password, password)
     } else {
-      isValidPassword = await verify(jwtOpts.secret, password)
+      isValidPassword = await verify(dealerFound[0].password, password)
     }
 
     if (!isValidPassword) {
