@@ -18,6 +18,12 @@ const devTransporter: Transporter = nodemailer.createTransport(
       pass: process.env.EMAIL_PASS,
     }
   }
+  // {
+  //   SES: {
+  //     ses: sesClient,
+  //     aws: { SendRawEmailCommand }
+  //   }
+  // }
 )
 
 const sesTransporter: Transporter = nodemailer.createTransport({
