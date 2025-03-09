@@ -25,6 +25,9 @@
   },
   "homepage": "https://github.com/MyayKhway/your_first_move_backend#readme",
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.758.0",
+    "@aws-sdk/credential-providers": "^3.758.0",
+    "@aws-sdk/smithy-client": "^3.374.0",
     "@types/passport-google-oauth2": "^0.1.10",
     "argon2": "^0.41.1",
     "bcrpyt": "^2.0.0",
@@ -37,10 +40,12 @@
     "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.10.0",
+    "openai": "^4.86.2",
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
     "passport-jwt-cookiecombo": "^1.0.5",
-    "pg": "^8.13.3"
+    "pg": "^8.13.3",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",

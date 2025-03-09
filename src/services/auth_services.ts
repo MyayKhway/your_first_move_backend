@@ -3,7 +3,6 @@ import { Request, Response, NextFunction } from 'express'
 import type { Express } from 'express';
 import { users, dealers, User, Dealer } from '../../drizzle/schema'
 import { randomBytes } from 'crypto';
-import { createTransport } from 'nodemailer';
 import db from '../db/connection';
 import { eq, or } from 'drizzle-orm';
 import { hash, verify } from 'argon2';
@@ -11,6 +10,7 @@ import { sign } from 'jsonwebtoken'
 import jwtOpts from '../../passport.config'
 import passport from 'passport';
 import { Strategy as JwtCookieComboStrategy } from 'passport-jwt-cookiecombo'
+import { sendEmail } from './email_services';
 
 export interface RequestWithUser extends Request {
   user?: User | Dealer;
@@ -20,16 +20,6 @@ export interface RequestWithUser extends Request {
 const generateVerificationToken = () => {
   return randomBytes(32).toString('hex');
 }
-
-const transporter = createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: process.env.EMAIL_SECURE == 'true',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  }
-})
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -58,11 +48,8 @@ export const signup = async (req: Request, res: Response) => {
     }, jwtOpts.secret)
 
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`
-    await transporter.sendMail({
-      to: email,
-      subject: 'Verify your account',
-      html: `<a href="${verificationLink}">Verify</a>`
-    })
+    console.log(verificationLink)
+    await sendEmail(email, 'Verify your account', `<a href="${verificationLink}">Verify</a>`)
 
     res.cookie(jwtOpts.cookieName, token, {
       ...jwtOpts.cookie,
@@ -115,11 +102,7 @@ export const dealerSignup = async (req: Request, res: Response) => {
     }, jwtOpts.secret)
 
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`
-    await transporter.sendMail({
-      to: email,
-      subject: 'Verify your dealer account',
-      html: `<a href="${verificationLink}">Verify</a>`
-    })
+    await sendEmail(email, 'Verify your dealer account', `<a href="${verificationLink}">Verify</a>`)
 
     res.cookie(jwtOpts.cookieName, token, {
       ...jwtOpts.cookie,
