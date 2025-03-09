@@ -20,6 +20,10 @@ const generateVerificationToken = () => {
   return randomBytes(32).toString('hex');
 }
 
+const generatePassRstToken = () => {
+  return randomBytes(32).toString('hex');
+}
+
 export const signup = async (req: Request, res: Response) => {
   try {
     const { username, email, password } = req.body;
@@ -47,7 +51,6 @@ export const signup = async (req: Request, res: Response) => {
     }, jwtOpts.secret)
 
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`
-    console.log(verificationLink)
     await sendEmail(email, 'Verify your account', `<a href="${verificationLink}">Verify</a>`)
 
     res.cookie(jwtOpts.cookieName, token, {
@@ -143,27 +146,23 @@ export const verifyEmail = async (req: Request, res: Response) => {
     let dealerFound: Dealer[] = []
     if (type == 'user') {
       userFound = await db.select().from(users).where(eq(users.verificationToken, token as string))
-      if (userFound.length > 0) {
-        await db.update(users)
-          .set({ verified: true, verificationToken: null, updatedAt: (new Date().toString()) })
-          .where(eq(users.id, userFound[0].id))
-      }
     } else {
       dealerFound = await db.select().from(dealers).where(eq(dealers.verificationToken, token as string))
-      if (dealerFound.length > 0) {
-        await db.update(dealers)
-          .set({ verified: true, verificationToken: null, updatedAt: (new Date().toString()) })
-          .where(eq(dealers.id, dealerFound[0].id))
-      }
     }
 
-    if (!userFound || userFound.length == 0) {
+    if ((!userFound || userFound.length == 0) && (!dealerFound || dealerFound.length == 0)) {
       res.status(404).json({ message: 'Invalid verification token.' })
       return;
     }
-    if (!dealerFound || dealerFound.length == 0) {
-      res.status(404).json({ message: 'Invalid verification token.' })
-      return;
+    if (userFound.length > 0) {
+      await db.update(users)
+        .set({ verified: true, verificationToken: null, updatedAt: (new Date().toISOString()) })
+        .where(eq(users.id, userFound[0].id))
+    }
+    if (dealerFound.length > 0) {
+      await db.update(dealers)
+        .set({ verified: true, verificationToken: null, updatedAt: (new Date().toISOString()) })
+        .where(eq(dealers.id, dealerFound[0].id))
     }
     res.status(200).json({ message: 'Email verified successfully.' })
   } catch (error) {
@@ -175,7 +174,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { username, email, password, type } = req.body;
-    console.log(req.body)
+    console.log(username, email, type)
     if (!type || (type !== 'user' && type !== 'dealer')) {
       res.status(401).json({ message: 'Account type is required' })
       return
@@ -189,20 +188,21 @@ export const login = async (req: Request, res: Response) => {
       dealerFound = await db.select().from(dealers).where(or(eq(dealers.email, email), eq(dealers.name, username)))
     }
 
-    if (!userFound || !dealerFound || userFound.length === 0 || dealerFound.length === 0) {
+    if (!((!userFound || userFound.length === 0) || (!dealerFound || dealerFound.length === 0))) {
       res.status(401).json({ message: 'Invalid credentials.' })
       return;
     }
 
     let isValidPassword: boolean;
     if (type === 'user') {
-      isValidPassword = await verify(jwtOpts.secret, password)
+      isValidPassword = await verify(userFound[0].password, password)
     } else {
-      isValidPassword = await verify(jwtOpts.secret, password)
+      isValidPassword = await verify(dealerFound[0].password, password)
     }
 
     if (!isValidPassword) {
       res.status(401).json({ message: 'Invalid credentials.' })
+      return
     }
 
     const token: string = sign(
@@ -288,6 +288,87 @@ export const setupPassport = (app: Express): void => {
     )
   );
 };
+
+export const reqResetPass = async (req: Request, res: Response) => {
+  const { email } = req.body
+  const userFound = await db.select().from(users).where(eq(users.email, email))
+
+  if (!userFound || userFound.length <= 0) {
+    res.status(404).json({ message: `User not found.` })
+    return
+  }
+
+  const resetToken = generatePassRstToken()
+  const success = await db.update(users).set({
+    resetToken
+  }).where(eq(users.id, userFound[0].id))
+  if (success) {
+    const resetLink = `${process.env.FRONTEND_URL}/password-reset?token=${resetToken}`
+    await sendEmail(userFound[0].email, `Password Reset Requested`, `<a href="${resetLink}>Reset Password</a>`)
+    res.status(200).json({ message: `Password reset email sent.` })
+  } else {
+    res.status(500).json({ message: 'Password reset failed.' })
+  }
+}
+
+export const reqResetPassDealer = async (req: Request, res: Response) => {
+  const { email } = req.body
+  const dealerFound = await db.select().from(dealers).where(eq(dealers.email, email))
+
+  if (!dealerFound || dealerFound.length <= 0) {
+    res.status(404).json({ message: `Account not found.` })
+    return
+  }
+
+  const resetToken = generatePassRstToken()
+  const resetLink = `${process.env.FRONTEND_URL}/password-reset?token=${resetToken}`
+  await sendEmail(dealerFound[0].email, `Password Reset Requested`, `<a href="${resetLink}>Reset Password</a>`)
+  res.status(200).json({ message: `Password reset email sent.` })
+}
+
+export const resetPwd = async (req: Request, res: Response) => {
+  const { token } = req.query
+  const { password } = req.body
+  const userFound = await db.select().from(users).where(eq(users.resetToken, token as string))
+  if (!userFound || userFound.length <= 0) {
+    res.status(404).json({ message: `Account not found.` })
+    return
+  }
+  const newPass = await hash(password)
+  const success = await db.update(users).set({
+    password: newPass,
+    resetToken: null
+  }).where(eq(users.id, userFound[0].id))
+
+  if (success) {
+    res.status(200).json({ message: `Password reset successful.` })
+    return
+  } else {
+    res.status(500).json({ message: `Password reset failed.` })
+  }
+}
+
+export const resetPwdDealer = async (req: Request, res: Response) => {
+  const { token } = req.query
+  const { password } = req.body
+  const dealerFound = await db.select().from(dealers).where(eq(dealers.resetToken, token as string))
+  if (!dealerFound || dealerFound.length <= 0) {
+    res.status(404).json({ message: `Account not found.` })
+    return
+  }
+  const newPass = await hash(password)
+  const success = await db.update(dealers).set({
+    password: newPass,
+    resetToken: null
+  }).where(eq(dealers.id, dealerFound[0].id))
+
+  if (success) {
+    res.status(200).json({ message: `Password reset successful.` })
+    return
+  } else {
+    res.status(500).json({ message: `Password reset failed.` })
+  }
+}
 
 export const requireAuth = passport.authenticate('jwt', { session: false });
 
