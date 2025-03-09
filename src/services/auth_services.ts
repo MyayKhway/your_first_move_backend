@@ -1,4 +1,3 @@
-
 import { Request, Response, NextFunction } from 'express'
 import type { Express } from 'express';
 import { users, dealers, User, Dealer } from '../../drizzle/schema'
@@ -292,7 +291,6 @@ export const setupPassport = (app: Express): void => {
 
 export const requireAuth = passport.authenticate('jwt', { session: false });
 
-// Optional verification check middleware
 export const checkVerified = (req: RequestWithUser, res: Response, next: NextFunction): void => {
   const user = req.user;
 
@@ -307,7 +305,6 @@ export const checkVerified = (req: RequestWithUser, res: Response, next: NextFun
   next();
 };
 
-// Middleware to restrict access to users only
 export const userOnly = (req: RequestWithUser, res: Response, next: NextFunction): void => {
   if (req.userType !== 'user') {
     res.status(403).json({ message: 'Access denied. User access only.' });
@@ -316,7 +313,6 @@ export const userOnly = (req: RequestWithUser, res: Response, next: NextFunction
   next();
 };
 
-// Middleware to restrict access to dealers only
 export const dealerOnly = (req: RequestWithUser, res: Response, next: NextFunction): void => {
   if (req.userType !== 'dealer') {
     res.status(403).json({ message: 'Access denied. Dealer access only.' });
