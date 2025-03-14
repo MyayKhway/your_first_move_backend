@@ -8,11 +8,13 @@ import {
   reqResetPassDealer,
   resetPwd,
   resetPwdDealer,
+  dealerSignup,
 } from '../services/auth_services'
 
 const authRouter = express.Router()
 
 authRouter.post('/signup', signup)
+authRouter.post('/dealer/signup', dealerSignup)
 authRouter.post('/signin', login)
 authRouter.post('/logout', logout)
 authRouter.post('/verify-email', verifyEmail)

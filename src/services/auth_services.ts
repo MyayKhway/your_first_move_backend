@@ -78,33 +78,38 @@ export const signup = async (req: Request, res: Response) => {
 
 export const dealerSignup = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, location } = req.body;
-    const existingDealer: Dealer[] = await db.select().from(dealers).where(or(eq(dealers.email, email), eq(dealers.name, name)))
-    if (existingDealer.length > 0) {
+    const { name, email, password, contactNumber, location } = req.body;
+    const existingMail: Dealer[] = await db.select().from(dealers).where(eq(dealers.email, email))
+    const existingName: Dealer[] = await db.select().from(dealers).where(eq(dealers.name, name))
+    const existing = [...existingMail, ...existingName]
+    console.log(existing.length)
+    if (existing.length > 0) {
       res.status(400).json({ message: 'User already exists.' })
       return
     }
     const hashedPwd = await hash(password)
     const verificationToken = generateVerificationToken();
 
-    const newUser: Dealer[] = await db.insert(dealers).values({
+    const newDealer: Dealer[] = await db.insert(dealers).values({
       name,
       email,
       password: hashedPwd,
       verificationToken,
+      contactNumber,
       verified: false,
-      updatedAt: (new Date()).toString(),
-      location
+      updatedAt: (new Date()).toISOString(),
+      address: location.address,
+      location: { x: location.lat, y: location.lng }
     }).returning()
 
     const token = sign({
-      id: newUser[0].id,
-      email: newUser[0].email,
-      type: 'user'
+      id: newDealer[0].id,
+      email: newDealer[0].email,
+      type: 'dealer'
     }, jwtOpts.secret)
 
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`
-    await sendEmail(email, 'Verify your dealer account', `<a href="${verificationLink}">Verify</a>`)
+    await sendEmail(email, 'Verify your account', `<a href="${verificationLink}">Verify</a>`)
 
     res.cookie(jwtOpts.cookieName, token, {
       ...jwtOpts.cookie,
@@ -113,11 +118,11 @@ export const dealerSignup = async (req: Request, res: Response) => {
 
     res.status(201).json({
       message: 'User created. Verification email sent.',
-      user: {
-        id: newUser[0].id,
-        username: newUser[0].name,
-        email: newUser[0].email,
-        verified: newUser[0].verified,
+      dealer: {
+        id: newDealer[0].id,
+        name: newDealer[0].name,
+        email: newDealer[0].email,
+        verified: newDealer[0].verified,
       },
     });
   } catch (error) {
@@ -174,7 +179,6 @@ export const verifyEmail = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { username, email, password, type } = req.body;
-    console.log(username, email, type)
     if (!type || (type !== 'user' && type !== 'dealer')) {
       res.status(401).json({ message: 'Account type is required' })
       return
@@ -183,9 +187,15 @@ export const login = async (req: Request, res: Response) => {
     let userFound: User[] = [];
     let dealerFound: Dealer[] = [];
     if (type === 'user') {
-      userFound = await db.select().from(users).where(or(eq(users.email, email), eq(users.username, username)))
+      if (email)
+        userFound = await db.select().from(users).where(eq(users.email, email))
+      else if (username)
+        userFound = await db.select().from(users).where(eq(users.username, username))
     } else {
-      dealerFound = await db.select().from(dealers).where(or(eq(dealers.email, email), eq(dealers.name, username)))
+      if (email)
+        dealerFound = await db.select().from(dealers).where(eq(dealers.email, email))
+      else if (username)
+        dealerFound = await db.select().from(dealers).where(eq(dealers.name, username))
     }
 
     if (!((!userFound || userFound.length === 0) || (!dealerFound || dealerFound.length === 0))) {
@@ -222,7 +232,7 @@ export const login = async (req: Request, res: Response) => {
         message: 'Login successful',
         user: {
           id: userFound[0].id,
-          username: (userFound[0] as User).username,
+          userName: (userFound[0] as User).username,
           email: userFound[0].email,
           verified: userFound[0].verified,
         },
