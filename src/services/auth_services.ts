@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import type { Express } from 'express';
-import { users, dealers, User, Dealer } from '../../drizzle/schema'
+import { users, dealers } from '../../drizzle/schema'
+import { User, Dealer } from '../types/utils';
 import { randomBytes } from 'crypto';
 import db from '../db/connection';
 import { eq, or } from 'drizzle-orm';
@@ -99,7 +100,7 @@ export const dealerSignup = async (req: Request, res: Response) => {
       verified: false,
       updatedAt: (new Date()).toISOString(),
       address: location.address,
-      location: { x: location.lat, y: location.lng }
+      location: [location.lat, location.lng]
     }).returning()
 
     const token = sign({

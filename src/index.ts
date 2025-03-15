@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import { setupPassport } from './services/auth_services';
 import { ask } from './services/openai_services';
 import cors, { CorsOptions } from 'cors'
+import carRouter from './routes/carRouter';
+import dealerRouter from './routes/dealerRouter';
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -19,10 +21,13 @@ dotenv.config()
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser(process.env.SECRET_KEY!))
 app.use(cors(corsOpts))
 setupPassport(app)
 app.use('/auth', authRouter)
+app.use('/car', carRouter)
+app.use('/dealer', dealerRouter)
 
 
 app.get('/', async (req: Request, res: Response) => {

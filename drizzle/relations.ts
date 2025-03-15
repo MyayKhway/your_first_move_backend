@@ -1,21 +1,29 @@
 import { relations } from "drizzle-orm/relations";
-import { cars, carsUsersLikes, users } from "./schema";
+import { dealers, cars, carsUsersReviews, users } from "./schema";
 
-export const carsUsersLikesRelations = relations(carsUsersLikes, ({one}) => ({
+export const carsRelations = relations(cars, ({one, many}) => ({
+	dealer: one(dealers, {
+		fields: [cars.dealerId],
+		references: [dealers.id]
+	}),
+	carsUsersReviews: many(carsUsersReviews),
+}));
+
+export const dealersRelations = relations(dealers, ({many}) => ({
+	cars: many(cars),
+}));
+
+export const carsUsersReviewsRelations = relations(carsUsersReviews, ({one}) => ({
 	car: one(cars, {
-		fields: [carsUsersLikes.carId],
+		fields: [carsUsersReviews.carId],
 		references: [cars.id]
 	}),
 	user: one(users, {
-		fields: [carsUsersLikes.userId],
+		fields: [carsUsersReviews.userId],
 		references: [users.id]
 	}),
 }));
 
-export const carsRelations = relations(cars, ({many}) => ({
-	carsUsersLikes: many(carsUsersLikes),
-}));
-
 export const usersRelations = relations(users, ({many}) => ({
-	carsUsersLikes: many(carsUsersLikes),
+	carsUsersReviews: many(carsUsersReviews),
 }));
