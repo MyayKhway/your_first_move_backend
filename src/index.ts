@@ -7,6 +7,7 @@ import { ask } from './services/openai_services';
 import cors, { CorsOptions } from 'cors'
 import carRouter from './routes/carRouter';
 import dealerRouter from './routes/dealerRouter';
+import openaiRouter from './routes/openaiRouter';
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -28,6 +29,7 @@ setupPassport(app)
 app.use('/auth', authRouter)
 app.use('/car', carRouter)
 app.use('/dealer', dealerRouter)
+app.use('/openai', openaiRouter)
 
 
 app.get('/', async (req: Request, res: Response) => {

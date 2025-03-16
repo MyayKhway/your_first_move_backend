@@ -24,10 +24,10 @@ export const cars = pgTable("cars", {
 	model: text().notNull(),
 	fuel: text().notNull(),
 	style: text().notNull(),
-	hwMpg: integer("hw_mpg").notNull(),
-	cityMpg: integer("city_mpg").notNull(),
+	hwMpg: integer("hw_mpg"),
+	cityMpg: integer("city_mpg"),
 	msrp: integer().notNull(),
-	cc: integer().notNull(),
+	cc: integer(),
 	torque: integer(),
 	seats: smallint().notNull(),
 	mainPicUrl: text("main_pic_url").notNull(),
@@ -64,6 +64,7 @@ export const carsUsersReviews = pgTable("cars_users_reviews", {
 	userId: integer("user_id").notNull(),
 	content: text().notNull(),
 	rating: integer().notNull(),
+	date: date().default(sql`CURRENT_DATE`).notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.carId],
