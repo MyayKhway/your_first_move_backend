@@ -1,7 +1,7 @@
 import express from "express";
 import upload from "../middlewares/multer_config";
 import { Car, CarData, MulterRequest } from "../types/utils";
-import { createCar, deleteCarById, fetchAllCars, fetchAllReviews, fetchCarById, fetchCarsByFuel, fetchCarsByStyle, makeNewReview } from "../services/car_services";
+import { createCar, deleteCarById, fetchAllCars, fetchAllCarsByDealer, fetchAllReviews, fetchCarById, fetchCarsByFuel, fetchCarsByStyle, makeNewReview } from "../services/car_services";
 
 
 const carRouter = express.Router()
@@ -77,7 +77,7 @@ carRouter.get('/all', async (req, res) => {
       res.status(400).json({ message: 'no search params' })
       return
     }
-    const allCars = await fetchAllCars(parseInt(id))
+    const allCars = await fetchAllCarsByDealer(parseInt(id))
     res.status(200).send(json(allCars))
   } catch (error) {
     res.status(500).json({ message: `${error}` })
@@ -146,6 +146,15 @@ carRouter.post('/reviews', async (req, res) => {
     console.log(carId, userId, rating, content)
     const newReview = await makeNewReview(parseInt(carId), parseInt(userId), content, parseInt(rating))
     res.status(200).json(newReview)
+  } catch (err) {
+    res.status(500).json({ message: `${err}` })
+  }
+})
+
+carRouter.get('/all', async (req, res) => {
+  try {
+    const allCars = await fetchAllCars()
+    res.status(200).json(allCars)
   } catch (err) {
     res.status(500).json({ message: `${err}` })
   }
