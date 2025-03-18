@@ -14,7 +14,16 @@ export const createCar = async (data: CarData) => {
   }
 }
 
-export const fetchAllCars = async (id: number) => {
+export const fetchAllCars = async () => {
+  try {
+    const allCars = await db.select().from(cars)
+    return allCars
+  } catch (err) {
+    throw new Error(`Database error. ${err}`)
+  }
+}
+
+export const fetchAllCarsByDealer = async (id: number) => {
   try {
     const allCars = await db.select().from(cars).where(eq(cars.dealerId, id))
     return allCars
@@ -110,3 +119,4 @@ export const makeNewReview = async (carId: number, userId: number, content: stri
     throw new Error(`Database Error. ${err}`)
   }
 }
+
