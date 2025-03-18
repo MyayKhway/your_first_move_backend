@@ -51,8 +51,8 @@ export const signup = async (req: Request, res: Response) => {
       type: 'user'
     }, jwtOpts.secret)
 
-    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`
-    await sendEmail(email, 'Verify your account', `<a href="${verificationLink}">Verify</a>`)
+    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}&type=user`
+    await sendEmail(email, 'Verify your account', verificationLink, "verification")
 
     res.cookie(jwtOpts.cookieName, token, {
       ...jwtOpts.cookie,
@@ -109,8 +109,8 @@ export const dealerSignup = async (req: Request, res: Response) => {
       type: 'dealer'
     }, jwtOpts.secret)
 
-    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`
-    await sendEmail(email, 'Verify your account', `<a href="${verificationLink}">Verify</a>`)
+    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}&type=dealer`
+    await sendEmail(email, 'Verify your account', verificationLink, "verification")
 
     res.cookie(jwtOpts.cookieName, token, {
       ...jwtOpts.cookie,
@@ -315,7 +315,7 @@ export const reqResetPass = async (req: Request, res: Response) => {
   }).where(eq(users.id, userFound[0].id))
   if (success) {
     const resetLink = `${process.env.FRONTEND_URL}/password-reset?token=${resetToken}`
-    await sendEmail(userFound[0].email, `Password Reset Requested`, `<a href="${resetLink}>Reset Password</a>`)
+    await sendEmail(userFound[0].email, `Password Reset Requested`, resetLink, "password")
     res.status(200).json({ message: `Password reset email sent.` })
   } else {
     res.status(500).json({ message: 'Password reset failed.' })
@@ -333,7 +333,7 @@ export const reqResetPassDealer = async (req: Request, res: Response) => {
 
   const resetToken = generatePassRstToken()
   const resetLink = `${process.env.FRONTEND_URL}/password-reset?token=${resetToken}`
-  await sendEmail(dealerFound[0].email, `Password Reset Requested`, `<a href="${resetLink}>Reset Password</a>`)
+  await sendEmail(dealerFound[0].email, `Password Reset Requested`, resetLink, "password")
   res.status(200).json({ message: `Password reset email sent.` })
 }
 
