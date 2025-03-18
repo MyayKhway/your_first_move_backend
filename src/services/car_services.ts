@@ -14,10 +14,23 @@ export const createCar = async (data: CarData) => {
   }
 }
 
-export const fetchAllCars = async () => {
+export const fetchAllCarsWithReviews = async () => {
   try {
-    const allCars = await db.select().from(cars)
-    return allCars
+    const carsReturned = await db.select().from(cars);
+
+    const carWithRatings = await Promise.all(carsReturned.map(async (car) => {
+      const reviews = await getReviewsByCarId(Number(car.id));
+      let rating = 0;
+      if (reviews.length > 0)
+        rating = reviews.reduce((prev, next) => prev + next.rating, 0) / reviews.length;
+      return {
+        ...car,
+        rating,
+        reviews: reviews.length
+      };
+    }));
+
+    return carWithRatings;
   } catch (err) {
     throw new Error(`Database error. ${err}`)
   }
@@ -58,6 +71,7 @@ export const getReviewsByCarId = async (id: number) => {
   }
 
 }
+
 export const fetchCarsByStyle = async (style: string) => {
   try {
     const carsReturned = await db.select().from(cars).where(eq(cars.style, style));
@@ -74,7 +88,6 @@ export const fetchCarsByStyle = async (style: string) => {
       };
     }));
 
-    console.log(carWithRatings); // Now contains the resolved values, not promises
     return carWithRatings;
   } catch (err) {
     throw new Error(`Database error. ${err}`)
