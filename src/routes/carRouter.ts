@@ -1,7 +1,7 @@
 import express from "express";
 import upload from "../middlewares/multer_config";
 import { Car, CarData, MulterRequest } from "../types/utils";
-import { createCar, deleteCarById, fetchAllCars, fetchAllReviews, fetchCarById, fetchCarsByFuel, fetchCarsByStyle, makeNewReview } from "../services/car_services";
+import { createCar, deleteCarById, fetchAllCarsByDealer, fetchAllCarsWithReviews, fetchAllReviews, fetchCarById, fetchCarsByFuel, fetchCarsByStyle, makeNewReview } from "../services/car_services";
 
 
 const carRouter = express.Router()
@@ -77,7 +77,7 @@ carRouter.get('/all', async (req, res) => {
       res.status(400).json({ message: 'no search params' })
       return
     }
-    const allCars = await fetchAllCars(parseInt(id))
+    const allCars = await fetchAllCarsByDealer(parseInt(id))
     res.status(200).send(json(allCars))
   } catch (error) {
     res.status(500).json({ message: `${error}` })
@@ -122,6 +122,8 @@ carRouter.get('/type/:style', async (req, res) => {
       cars = await fetchCarsByStyle("Sedan")
     } else if (style == "hybrid") {
       cars = await fetchCarsByFuel("Hybrid")
+    } else if (style == "all") {
+      cars = await fetchAllCarsWithReviews()
     }
     res.status(200).send(json(cars))
   } catch (err) {

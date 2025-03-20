@@ -1,6 +1,6 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import { SESClient, SendRawEmailCommand } from '@aws-sdk/client-ses';
-import { render, renderFile } from 'ejs';
+import { render } from 'ejs';
 import { readFileSync } from 'fs';
 import path from 'path';
 
