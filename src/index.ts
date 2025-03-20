@@ -37,7 +37,7 @@ app.get('/', async (req: Request, res: Response) => {
 });
 
 app.get('/openai', async (req, res,) => {
-  const chatCompletion = await ask();
+  const chatCompletion = await ask("blahblah");
   res.status(200).json({ result: chatCompletion })
 })
 
