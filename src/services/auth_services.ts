@@ -302,10 +302,12 @@ export const setupPassport = (app: Express): void => {
 
 export const reqResetPass = async (req: Request, res: Response) => {
   const { email } = req.body
+  console.log(email)
   const userFound = await db.select().from(users).where(eq(users.email, email))
+  console.log(userFound)
 
   if (!userFound || userFound.length <= 0) {
-    res.status(404).json({ message: `User not found.` })
+    res.status(200).json({ message: `Password reset email may or may not be sent.` })
     return
   }
 
@@ -314,27 +316,36 @@ export const reqResetPass = async (req: Request, res: Response) => {
     resetToken
   }).where(eq(users.id, userFound[0].id))
   if (success) {
-    const resetLink = `${process.env.FRONTEND_URL}/password-reset?token=${resetToken}`
-    await sendEmail(userFound[0].email, `Password Reset Requested`, resetLink, "password")
+    const resetLink = `${process.env.FRONTEND_URL}/resetpass?token=${resetToken}`
+    await sendEmail(email, `Password Reset Requested`, resetLink, "password")
     res.status(200).json({ message: `Password reset email sent.` })
   } else {
-    res.status(500).json({ message: 'Password reset failed.' })
+    res.status(500).json({ message: '' })
   }
 }
 
 export const reqResetPassDealer = async (req: Request, res: Response) => {
   const { email } = req.body
+  console.log(email)
   const dealerFound = await db.select().from(dealers).where(eq(dealers.email, email))
 
+  console.log(dealerFound)
   if (!dealerFound || dealerFound.length <= 0) {
-    res.status(404).json({ message: `Account not found.` })
+    res.status(200).json({ message: `Password reset email may or may not be sent.` })
     return
   }
 
   const resetToken = generatePassRstToken()
-  const resetLink = `${process.env.FRONTEND_URL}/password-reset?token=${resetToken}`
-  await sendEmail(dealerFound[0].email, `Password Reset Requested`, resetLink, "password")
-  res.status(200).json({ message: `Password reset email sent.` })
+  const success = await db.update(dealers).set({
+    resetToken
+  }).where(eq(dealers.id, dealerFound[0].id))
+  if (success) {
+    const resetLink = `${process.env.FRONTEND_URL}/resetpass-dealer?token=${resetToken}`
+    await sendEmail(email, `Password Reset Requested`, resetLink, "password")
+    res.status(200).json({ message: `Password reset email may or may not be sent.` })
+  } else {
+    res.status(500).json({ message: 'Password reset failed.' })
+  }
 }
 
 export const resetPwd = async (req: Request, res: Response) => {

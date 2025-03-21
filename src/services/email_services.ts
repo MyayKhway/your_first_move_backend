@@ -14,16 +14,16 @@ const sesClient = new SESClient({
 
 const devTransporter: Transporter = nodemailer.createTransport(
   {
-    // host: process.env.EMAIL_HOST!,
-    // port: parseInt(process.env.EMAIL_PORT!),
-    // auth: {
-    //   user: process.env.EMAIL_USER,
-    //   pass: process.env.EMAIL_PASS,
-    // }
-    SES: {
-      ses: sesClient,
-      aws: { SendRawEmailCommand }
+    host: process.env.EMAIL_HOST!,
+    port: parseInt(process.env.EMAIL_PORT!),
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     }
+    // SES: {
+    //   ses: sesClient,
+    //   aws: { SendRawEmailCommand }
+    // }
   }
 )
 
