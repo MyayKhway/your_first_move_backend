@@ -199,11 +199,11 @@ export const login = async (req: Request, res: Response) => {
         dealerFound = await db.select().from(dealers).where(eq(dealers.name, username))
     }
 
-    if (!((!userFound || userFound.length === 0) || (!dealerFound || dealerFound.length === 0))) {
+    if ((type === 'user' && (userFound.length === 0)) ||
+      (type === 'dealer' && (dealerFound.length === 0))) {
       res.status(401).json({ message: 'Invalid credentials.' })
       return;
     }
-
     let isValidPassword: boolean;
     if (type === 'user') {
       isValidPassword = await verify(userFound[0].password, password)
@@ -222,7 +222,9 @@ export const login = async (req: Request, res: Response) => {
         email: userFound.length > 0 ? userFound[0].email : dealerFound[0].email,
         type
       }, jwtOpts.secret, {
-      expiresIn: '7d'
+      expiresIn: userFound.length > 0
+        ? (userFound[0].verified ? '7d' : '1d')
+        : (dealerFound[0].verified ? '7d' : '1d')
     }
     )
 

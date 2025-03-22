@@ -8,6 +8,7 @@ import cors, { CorsOptions } from 'cors'
 import carRouter from './routes/carRouter';
 import dealerRouter from './routes/dealerRouter';
 import openaiRouter from './routes/openaiRouter';
+import { isAuthorized, } from './middlewares/authorize';
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -27,7 +28,7 @@ app.use(cookieParser(process.env.SECRET_KEY!))
 app.use(cors(corsOpts))
 setupPassport(app)
 app.use('/auth', authRouter)
-app.use('/car', carRouter)
+app.use('/car', isAuthorized, carRouter)
 app.use('/dealer', dealerRouter)
 app.use('/openai', openaiRouter)
 
