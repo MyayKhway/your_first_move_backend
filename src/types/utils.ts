@@ -15,4 +15,3 @@ export interface MulterRequest extends Request {
     otherImg?: Express.Multer.File[];
   };
 }
-
