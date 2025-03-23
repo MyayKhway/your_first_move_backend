@@ -8,7 +8,7 @@ import cors, { CorsOptions } from 'cors'
 import carRouter from './routes/carRouter';
 import dealerRouter from './routes/dealerRouter';
 import openaiRouter from './routes/openaiRouter';
-import { isAuthorized, } from './middlewares/authorize';
+import { json } from './routes/carRouter';
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -28,9 +28,21 @@ app.use(cookieParser(process.env.SECRET_KEY!))
 app.use(cors(corsOpts))
 setupPassport(app)
 app.use('/auth', authRouter)
-app.use('/car', isAuthorized, carRouter)
+app.use('/car', carRouter)
 app.use('/dealer', dealerRouter)
 app.use('/openai', openaiRouter)
+
+
+app.post('/ai-query', async (req, res) => {
+  const { searchQuery } = req.body
+  const queryAns = await ask(searchQuery)
+  if (!queryAns) {
+    res.status(500).json({ message: "server error" })
+    return
+  }
+  const { reason, carRecommendations } = queryAns
+  res.status(200).send({ reason, carRecommendations: json(carRecommendations) })
+})
 
 
 app.get('/', async (req: Request, res: Response) => {

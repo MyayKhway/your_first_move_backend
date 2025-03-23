@@ -1,5 +1,5 @@
-import { eq } from 'drizzle-orm'
-import { cars, carsUsersReviews, users } from '../../drizzle/schema'
+import { and, between, eq, gt, ilike, lt } from 'drizzle-orm'
+import { cars, cars, carsUsersReviews, users } from '../../drizzle/schema'
 import db from '../db/connection'
 import { CarData } from '../types/utils'
 
@@ -121,7 +121,7 @@ export const fetchAllReviews = async (carId: number) => {
 
 export const makeNewReview = async (carId: number, userId: number, content: string, rating: number) => {
   try {
-    const newReview = db.insert(carsUsersReviews).values({
+    const newReview = await db.insert(carsUsersReviews).values({
       carId,
       userId,
       content,
@@ -133,3 +133,57 @@ export const makeNewReview = async (carId: number, userId: number, content: stri
   }
 }
 
+export const fetchCarBrands = async () => {
+  try {
+    const brands = await db.selectDistinct({ brands: cars.make }).from(cars)
+    console.log(brands)
+    return brands
+  } catch (err) {
+    throw new Error(`Database Error. ${err}`)
+  }
+}
+
+export const fetchCarbySpec = async ({ seats, fuel, style, cc, min_mpg, msrp }:
+  {
+    seats: number,
+    fuel: string,
+    style: string,
+    cc: number,
+    min_mpg: number,
+    msrp: number
+  }) => {
+  console.log(seats, fuel, style, cc, min_mpg, msrp)
+  // const fetchedCars = await db.select().from(cars).where(
+  //   and(
+  //     between(cars.seats, seats - 1, seats + 1),
+  //     ilike(cars.fuel, `${fuel}`),
+  //     ilike(cars.style, `${style}`),
+  //     between(cars.cc, cc - 500, cc + 500),
+  //     gt(cars.hwMpg, min_mpg - 5),
+  //     lt(cars.msrp, msrp + 50000)
+  //   )
+  // )
+  // if (!fetchedCars) {
+  //   const fetchedCarsNew = await db.select().from(cars).where(
+  //     and(
+  //       ilike(cars.style, `${style}`),
+  //       between(cars.cc, cc - 500, cc + 500),
+  //       gt(cars.hwMpg, min_mpg - 5),
+  //     )
+  //   )
+  //   return fetchedCarsNew
+  // }
+  const carsReturned = await db.select().from(cars).limit(10)
+  const carWithRatings = await Promise.all(carsReturned.map(async (car) => {
+    const reviews = await getReviewsByCarId(Number(car.id));
+    let rating = 0;
+    if (reviews.length > 0)
+      rating = reviews.reduce((prev, next) => prev + next.rating, 0) / reviews.length;
+    return {
+      ...car,
+      rating,
+      reviews: reviews.length
+    };
+  }));
+  return carWithRatings
+}

@@ -1,12 +1,22 @@
 import express from "express";
 import upload from "../middlewares/multer_config";
 import { Car, CarData, MulterRequest } from "../types/utils";
-import { createCar, deleteCarById, fetchAllCarsByDealer, fetchAllCarsWithReviews, fetchAllReviews, fetchCarById, fetchCarsByFuel, fetchCarsByStyle, makeNewReview } from "../services/car_services";
+import {
+  createCar,
+  deleteCarById,
+  fetchAllCarsByDealer,
+  fetchAllCarsWithReviews,
+  fetchAllReviews,
+  fetchCarById,
+  fetchCarsByFuel,
+  fetchCarsByStyle,
+  makeNewReview
+} from "../services/car_services";
 
 
 const carRouter = express.Router()
 
-const json = (param: any): any => {
+export const json = (param: any): any => {
   return JSON.stringify(
     param,
     (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
