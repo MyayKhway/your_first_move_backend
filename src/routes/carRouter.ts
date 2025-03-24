@@ -7,6 +7,7 @@ import {
   fetchAllCarsByDealer,
   fetchAllCarsWithReviews,
   fetchAllReviews,
+  fetchBestReviewedCars,
   fetchCarById,
   fetchCarsByFuel,
   fetchCarsByStyle,
@@ -23,6 +24,17 @@ export const json = (param: any): any => {
   );
 };
 
+carRouter.get('/best', async (req, res) => {
+  try {
+    const carResults = await fetchBestReviewedCars()
+    res.status(200).send(json(carResults))
+  } catch (error) {
+    if (error instanceof Error)
+      res.status(500).json({ message: error.message })
+    else
+      res.status(500).json({ message: error })
+  }
+})
 carRouter.post('/create', upload.fields([
   { name: 'mainImg', maxCount: 1 },
   { name: 'otherImg', maxCount: 7 },

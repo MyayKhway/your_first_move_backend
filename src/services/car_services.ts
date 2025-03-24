@@ -1,4 +1,4 @@
-import { and, between, eq, gt, ilike, lt } from 'drizzle-orm'
+import { and, between, desc, eq, getTableColumns, gt, ilike, inArray, lt, sql } from 'drizzle-orm'
 import { cars, cars, carsUsersReviews, users } from '../../drizzle/schema'
 import db from '../db/connection'
 import { CarData } from '../types/utils'
@@ -192,4 +192,28 @@ export const fetchCarbySpec = async ({ seats, fuel, style, cc, min_mpg, msrp }:
     };
   }));
   return carWithRatings
+}
+
+export const fetchBestReviewedCars = async () => {
+  // get four best revied cars
+  try {
+    const carIds = await db.select(
+      {
+        carId: carsUsersReviews.carId,
+        avgRating: sql`avg(${carsUsersReviews.rating})`
+      }
+    )
+      .from(carsUsersReviews)
+      .groupBy(carsUsersReviews.carId)
+      .orderBy(({ avgRating }) => avgRating)
+      .limit(4)
+    if (!carIds) {
+      return null
+    }
+    const carsIdonly = carIds.map(car => car.carId)
+    const carsResuls = await db.select().from(cars).where(inArray(cars.id, carsIdonly.map(id => BigInt(id))))
+    return carsResuls
+  } catch (err) {
+    throw new Error(`Database Error. ${err}`)
+  }
 }
