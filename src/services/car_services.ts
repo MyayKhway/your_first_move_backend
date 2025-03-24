@@ -153,6 +153,12 @@ export const fetchCarbySpec = async ({ seats, fuel, style, cc, min_mpg, msrp }:
     msrp: number
   }) => {
   console.log(seats, fuel, style, cc, min_mpg, msrp)
+  const carsByStyleAndFuel = await db.select().from(cars).where(
+    and(
+      ilike(cars.style, style),
+      ilike(cars.fuel, fuel)
+    )
+  )
   // const fetchedCars = await db.select().from(cars).where(
   //   and(
   //     between(cars.seats, seats - 1, seats + 1),
@@ -173,8 +179,8 @@ export const fetchCarbySpec = async ({ seats, fuel, style, cc, min_mpg, msrp }:
   //   )
   //   return fetchedCarsNew
   // }
-  const carsReturned = await db.select().from(cars).limit(10)
-  const carWithRatings = await Promise.all(carsReturned.map(async (car) => {
+  // const carsReturned = await db.select().from(cars).limit(10)
+  const carWithRatings = await Promise.all(carsByStyleAndFuel.map(async (car) => {
     const reviews = await getReviewsByCarId(Number(car.id));
     let rating = 0;
     if (reviews.length > 0)

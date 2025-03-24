@@ -1,6 +1,5 @@
 import express from "express";
 import { fetchDealerFromCar } from "../services/dealer_services";
-import { isAuthorizedDealer } from "../middlewares/authorize";
 
 
 const dealerRouter = express.Router()
@@ -12,7 +11,7 @@ const json = (param: any): any => {
   );
 };
 
-dealerRouter.get('/bycar/:id', isAuthorizedDealer, async (req, res) => {
+dealerRouter.get('/bycar/:id', async (req, res) => {
   const url = req.url.split('/')
   const carId = url[url.length - 1]
   try {
