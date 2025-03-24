@@ -32,7 +32,6 @@ app.use('/car', carRouter)
 app.use('/dealer', dealerRouter)
 app.use('/openai', openaiRouter)
 
-
 app.post('/ai-query', async (req, res) => {
   const { searchQuery } = req.body
   const queryAns = await ask(searchQuery)
