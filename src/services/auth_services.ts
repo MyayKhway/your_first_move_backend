@@ -146,6 +146,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
 
     if (!type || (type !== 'user' && type !== 'dealer')) {
       res.status(400).json({ message: 'Invalid account type' })
+      return
     }
 
     let userFound: User[] = []

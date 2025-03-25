@@ -11,6 +11,7 @@ import openaiRouter from './routes/openaiRouter';
 import { json } from './routes/carRouter';
 
 const allowedOrigins = [
+  "http://10.66.4.176:5173",
   "http://localhost:5173",
 ]
 const corsOpts: CorsOptions = {
@@ -53,7 +54,7 @@ app.get('/openai', async (req, res,) => {
   res.status(200).json({ result: chatCompletion })
 })
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const PORT = process.env.PORT || "3000";
+app.listen(parseInt(PORT), '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
