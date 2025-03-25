@@ -305,9 +305,7 @@ export const setupPassport = (app: Express): void => {
 
 export const reqResetPass = async (req: Request, res: Response) => {
   const { email } = req.body
-  console.log(email)
   const userFound = await db.select().from(users).where(eq(users.email, email))
-  console.log(userFound)
 
   if (!userFound || userFound.length <= 0) {
     res.status(200).json({ message: `Password reset email may or may not be sent.` })
@@ -329,10 +327,8 @@ export const reqResetPass = async (req: Request, res: Response) => {
 
 export const reqResetPassDealer = async (req: Request, res: Response) => {
   const { email } = req.body
-  console.log(email)
   const dealerFound = await db.select().from(dealers).where(eq(dealers.email, email))
 
-  console.log(dealerFound)
   if (!dealerFound || dealerFound.length <= 0) {
     res.status(200).json({ message: `Password reset email may or may not be sent.` })
     return
